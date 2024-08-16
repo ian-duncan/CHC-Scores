@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Match Selector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        select {
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+        .stats {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .match {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .match-date {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .win {
+            background-color: lightgreen;
+        }
+        .loss {
+            background-color: lightcoral;
+        }
+        .tie {
+            background-color: lightyellow;
+        }
+        .beta-message {
+            background-color: lightyellow;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Select a Team</h1>
+
+    <div id="beta-message" class="beta-message">
+        This site is in beta for testing. Please use the feedback tab if you find any issues with the 23/24 scores to help improve the site for the 24/25 season!
+    </div>
+
+    <select id="team-select">
+        <option value="">-- Select a Team --</option>
+    </select>
+    
+    <div id="stats-container" class="stats"></div>
+    
+    <div id="matches-container"></div>
+
+    <script>
+        // Fetch the JSON data from the matches.json file
+        fetch('file.json')
+            .then(response => response.json())
+            .then(matches => {
+                // Extract unique teams and sort them alphabetically
+                const teams = [...new Set(matches.flatMap(match => [match.HOME_TEAM, match.AWAY_TEAM]))]
+                              .sort();
+
+                // Populate the select dropdown with sorted team names
+                const teamSelect = document.getElementById('team-select');
+                teams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team;
+                    option.textContent = team;
+                    teamSelect.appendChild(option);
+                });
+
+                // Handle team selection
+                teamSelect.addEventListener('change', function() {
+                    const selectedTeam = this.value;
+                    const matchesContainer = document.getElementById('matches-container');
+                    const statsContainer = document.getElementById('stats-container');
+                    const betaMessage = document.getElementById('beta-message');
+                    
+                    // Hide beta message
+                    betaMessage.classList.add('hidden');
+
+                    matchesContainer.innerHTML = '';  // Clear previous matches
+                    statsContainer.innerHTML = '';  // Clear previous stats
+
+                    // Filter matches involving the selected team
+                    const filteredMatches = matches.filter(match =>
+                        match.HOME_TEAM === selectedTeam || match.AWAY_TEAM === selectedTeam
+                    );
+
+                    // Calculate total games, wins, losses, and ties
+                    let totalGames = 0;
+                    let totalWins = 0;
+                    let totalLosses = 0;
+                    let totalTies = 0;
+
+                    filteredMatches.forEach(match => {
+                        totalGames++;
+                        const matchDiv = document.createElement('div');
+                        matchDiv.classList.add('match');
+
+                        let matchResult, scoreResult, resultClass;
+
+                        if (match.HOME_SCORE === match.AWAY_SCORE) {
+                            totalTies++;
+                            resultClass = 'tie';
+                        } else if (match.HOME_TEAM === selectedTeam && parseInt(match.HOME_SCORE) > parseInt(match.AWAY_SCORE)) {
+                            totalWins++;
+                            resultClass = 'win';
+                        } else if (match.AWAY_TEAM === selectedTeam && parseInt(match.AWAY_SCORE) > parseInt(match.HOME_SCORE)) {
+                            totalWins++;
+                            resultClass = 'win';
+                        } else {
+                            totalLosses++;
+                            resultClass = 'loss';
+                        }
+
+                        if (match.HOME_TEAM === selectedTeam) {
+                            matchResult = `<strong>${selectedTeam}</strong> vs <strong>${match.AWAY_TEAM}</strong>`;
+                            scoreResult = `${match.HOME_SCORE} - ${match.AWAY_SCORE}`;
+                        } else {
+                            matchResult = `<strong>${selectedTeam}</strong> @ <strong>${match.HOME_TEAM}</strong>`;
+                            scoreResult = `${match.AWAY_SCORE} - ${match.HOME_SCORE}`;
+                        }
+
+                        matchDiv.classList.add(resultClass); // Apply the result class for styling
+
+                        matchDiv.innerHTML = `
+                            <div class="match-date">${match.DATE}</div>
+                            <div>${matchResult}</div>
+                            <div>Score: ${scoreResult}</div>
+                        `;
+                        
+                        matchesContainer.appendChild(matchDiv);
+                    });
+
+                    if (filteredMatches.length === 0) {
+                        matchesContainer.textContent = 'No matches found for the selected team.';
+                    }
+
+                    // Display stats above matches
+                    statsContainer.innerHTML = `
+                        Games Played: ${totalGames} <br>
+                        Wins: ${totalWins} <br>
+                        Losses: ${totalLosses} <br>
+                        Ties: ${totalTies}
+                    `;
+                });
+            })
+            .catch(error => console.error('Error loading JSON:', error));
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+<script src="https://form.jotform.com/static/feedback2.js"></script>
+<script>
+  var componentID = new JotformFeedback({
+    
+type: 1,
+width: 700,
+height: 500,
+fontColor: "#FFFFFF",
+background: "#4a4a4a",
+isCardForm: false,
+formId: "242277869668074"
+,
+    buttonText: "Feedback",
+    buttonSide: "right",
+    buttonAlign: "top",
+    base: "https://form.jotform.com/",
+  }).componentID;
+</script>
+<script src='https://cdn.jotfor.ms/s/umd/latest/for-form-embed-handler.js'></script>
+<script>window.jotformEmbedHandler("iframe[id='" + componentID + "_iframe']", "https://form.jotform.com/")</script>
+
+</body>
+</html>
